@@ -1,0 +1,5 @@
+python-dotenv==1.0.0
+python-telegram-bot==22.5
+openpyxl==3.1.2
+mistralai==0.3.0
+mysql-connector-python==8.2.0
