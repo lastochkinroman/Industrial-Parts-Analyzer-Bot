@@ -54,11 +54,23 @@ BP-12345-67890 !industrialsupply !machineparts
 
 ## Что получите
 
-Краткий анализ и рекомендации в чате
+**Краткий анализ и рекомендации в чате**
 
-Excel-файл с детальным сравнением
 
-Сохранённые данные для отслеживания трендов
+
+<img width="605" height="461" alt="изображение" src="https://github.com/user-attachments/assets/b6d11bcd-a235-426f-9bdc-5458ebb04396" />
+
+
+
+**Excel-файл с детальным сравнением**
+
+
+
+<img width="989" height="806" alt="изображение" src="https://github.com/user-attachments/assets/efd54d7a-972e-4199-8f9c-4fb69014e22b" />
+
+
+
+**Сохранённые данные для отслеживания трендов**
 
 
 ## Технологии
