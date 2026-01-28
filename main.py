@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 mistral_client = MistralClient(api_key=Config.MISTRAL_API_KEY)
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик команды /start"""
     welcome_text = """
 🏭 *Industrial Parts Analyzer Bot*
 
@@ -44,7 +43,6 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(welcome_text, parse_mode='Markdown')
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик команды /help"""
     help_text = """
 📋 *Доступные команды:*
 
@@ -67,17 +65,14 @@ GR-xxxxx-xxxxx - Редукторы
     await update.message.reply_text(help_text, parse_mode='Markdown')
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработка текстовых сообщений с номерами запчастей"""
     user = update.effective_user
     message_text = update.message.text
 
     logger.info(f"Message from {user.id}: {message_text}")
 
-    # Показать индикатор "печатает"
     await update.message.chat.send_action(action="typing")
 
     try:
-        # Извлечение параметров поиска
         part_numbers, suppliers = analyzer.extract_search_params(message_text)
 
         if not part_numbers:
@@ -88,7 +83,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        # Сообщение о начале поиска
         supplier_names = [
             analyzer.supplier_mapping.get(s, s)
             for s in suppliers
@@ -102,24 +96,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode='Markdown'
         )
 
-        # Поиск данных
         search_results = await analyzer.search_parts(part_numbers, suppliers)
 
         if not search_results:
             await status_msg.edit_text("❌ Не удалось найти информацию по указанным запчастям.")
             return
 
-        # Анализ данных
         analysis_results = []
         for part_data in search_results:
             analysis = analyzer.analyze_prices(part_data)
             if analysis:
                 analysis_results.append(analysis)
 
-        # Генерация AI-анализа через Mistral
         ai_analyses = await generate_ai_analysis(analysis_results)
 
-        # Генерация Excel отчета
         user_info = {
             'id': user.id,
             'username': user.username,
@@ -128,16 +118,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         report_path = report_generator.generate_report(analysis_results, user_info)
 
-        # Отправка результатов
         if ai_analyses:
             analysis_text = "🤖 *AI Анализ цен:*\n\n"
-            for ai_analysis in ai_analyses[:3]:  # Первые 3 анализа
+            for ai_analysis in ai_analyses[:3]:
                 analysis_text += f"*{ai_analysis['part_number']}*\n"
                 analysis_text += f"{ai_analysis['analysis']}\n\n"
 
             await update.message.reply_text(analysis_text, parse_mode='Markdown')
 
-        # Отправка файла
         with open(report_path, 'rb') as report_file:
             await update.message.reply_document(
                 document=report_file,
@@ -145,10 +133,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 caption=f"📊 Отчет по {len(analysis_results)} запчастям"
             )
 
-        # Удаление статус-сообщения
         await status_msg.delete()
 
-        # Логирование запроса в БД
         log_search_request(user, part_numbers, suppliers, len(analysis_results))
 
     except Exception as e:
@@ -158,13 +144,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 async def generate_ai_analysis(analysis_results):
-    """Генерация анализа через Mistral AI"""
     if not Config.MISTRAL_API_KEY:
         return []
 
     analyses = []
 
-    for result in analysis_results[:5]:  # Ограничиваем 5 запросами
+    for result in analysis_results[:5]:
         try:
             prompt = f"""
             Проанализируй данные по промышленной запчасти:
@@ -207,7 +192,6 @@ async def generate_ai_analysis(analysis_results):
     return analyses
 
 def log_search_request(user, part_numbers, suppliers, results_count):
-    """Логирование запроса в базу данных"""
     try:
         conn = db_manager.get_connection()
         cursor = conn.cursor()
@@ -235,7 +219,6 @@ def log_search_request(user, part_numbers, suppliers, results_count):
         logger.error(f"Error logging search request: {e}")
 
 async def history_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Команда для просмотра истории цен"""
     args = context.args
 
     if not args:
@@ -258,14 +241,13 @@ async def history_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         response = f"📈 *История цен: {part_number}*\n\n"
 
-        # Группировка по дате
         from collections import defaultdict
         by_date = defaultdict(list)
 
-        for record in history[:10]:  # Последние 10 записей
+        for record in history[:10]:
             by_date[record['date']].append(record)
 
-        for date, records in list(by_date.items())[:5]:  # Последние 5 дней
+        for date, records in list(by_date.items())[:5]:
             response += f"*{date}*\n"
             for record in records:
                 response += f"• {record['supplier_name']}: {record['price']} руб. ({record['delivery_days']} дн.)\n"
@@ -278,17 +260,13 @@ async def history_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Ошибка при получении истории.")
 
 def main():
-    """Запуск бота"""
-    # Создание приложения Telegram
     application = Application.builder().token(Config.TELEGRAM_TOKEN).build()
 
-    # Регистрация обработчиков
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("history", history_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # Запуск бота
     print("🤖 Industrial Parts Analyzer Bot запущен...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 

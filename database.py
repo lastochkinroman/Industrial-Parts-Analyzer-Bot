@@ -13,7 +13,6 @@ class DatabaseManager:
         self.create_tables()
 
     def init_pool(self):
-        """Инициализация пула соединений"""
         try:
             self.connection_pool = pooling.MySQLConnectionPool(
                 **Config.MYSQL_CONFIG
@@ -24,7 +23,6 @@ class DatabaseManager:
             raise
 
     def get_connection(self):
-        """Получение соединения из пула"""
         try:
             return self.connection_pool.get_connection()
         except Error as e:
@@ -32,7 +30,6 @@ class DatabaseManager:
             raise
 
     def create_tables(self):
-        """Создание таблиц в базе данных"""
         create_tables_queries = [
             """
             CREATE TABLE IF NOT EXISTS parts (
@@ -137,7 +134,6 @@ class DatabaseManager:
                 conn.close()
 
     def save_part_data(self, part_data):
-        """Сохранение данных о запчасти"""
         query = """
         INSERT INTO parts (part_number, name, description, brands, analogs)
         VALUES (%s, %s, %s, %s, %s)
@@ -165,7 +161,6 @@ class DatabaseManager:
             cursor.close()
             conn.commit()
 
-            # Сохранение цен
             self.save_prices(part_data)
 
             return True
@@ -179,7 +174,6 @@ class DatabaseManager:
                 conn.close()
 
     def save_prices(self, part_data):
-        """Сохранение цен в историю"""
         query = """
         INSERT INTO price_history
         (part_number, supplier_code, brand, price, delivery_days)
@@ -212,7 +206,6 @@ class DatabaseManager:
                 conn.close()
 
     def get_part_history(self, part_number, days=30):
-        """Получение истории цен за период"""
         query = """
         SELECT
             ph.part_number,

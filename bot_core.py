@@ -16,7 +16,6 @@ class PartsAnalyzer:
         }
 
     def extract_search_params(self, message_text: str):
-        """Извлечение параметров поиска из сообщения"""
         suppliers = []
         if re.search(r'!industrialsupply|!isup', message_text, re.IGNORECASE):
             suppliers.append('industrialsupply')
@@ -38,7 +37,6 @@ class PartsAnalyzer:
         return part_numbers, suppliers
 
     async def search_parts(self, part_numbers: List[str], suppliers: List[str]):
-        """Поиск информации по запчастям"""
         results = []
 
         for part_number in part_numbers:
@@ -46,7 +44,6 @@ class PartsAnalyzer:
                 part_data = await self._mock_supplier_search(part_number, suppliers)
 
                 if part_data:
-                    # Сохраняем в базу
                     db_manager.save_part_data(part_data)
                     results.append(part_data)
 
@@ -57,7 +54,6 @@ class PartsAnalyzer:
         return results
 
     async def _mock_supplier_search(self, part_number: str, suppliers: List[str]):
-        """Имитация поиска у поставщиков"""
         mock_database = {
             "BP-12345-67890": {
                 "part_number": "BP-12345-67890",
@@ -91,12 +87,12 @@ class PartsAnalyzer:
         for supplier in suppliers:
             base_data["prices"][supplier] = []
 
-            for i, brand in enumerate(base_data["brands"][:2]):  # Первые 2 бренда
+            for i, brand in enumerate(base_data["brands"][:2]):
                 hash_input = f"{part_number}{supplier}{brand}{i}".encode()
                 hash_val = int(hashlib.md5(hash_input).hexdigest(), 16)
 
-                price = 10000 + (hash_val % 40000)  # 10000-50000
-                delivery = 1 + (hash_val % 14)  # 1-14 дней
+                price = 10000 + (hash_val % 40000)
+                delivery = 1 + (hash_val % 14)
 
                 base_data["prices"][supplier].append({
                     "brand": brand,
@@ -107,7 +103,6 @@ class PartsAnalyzer:
         return base_data
 
     def analyze_prices(self, part_data: Dict[str, Any]):
-        """Анализ ценовых данных"""
         all_prices = []
 
         for supplier, prices in part_data["prices"].items():
@@ -129,7 +124,7 @@ class PartsAnalyzer:
         median_price = sorted_prices[median_index]
 
         analogs_analysis = []
-        for analog in part_data["analogs"][:3]:  # Берем первые 3 аналога
+        for analog in part_data["analogs"][:3]:
             analogs_analysis.append({
                 "part_number": analog,
                 "estimated_price": min_price["price"] * 0.9 + (hash(analog) % 2000),

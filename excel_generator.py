@@ -19,13 +19,12 @@ class ExcelReportGenerator:
         self.center_alignment = Alignment(horizontal="center", vertical="center")
 
         self.supplier_colors = {
-            "industrialsupply": "FFCCFFCC",  # Светло-зеленый
-            "machineparts": "FFF9CB9C",      # Светло-оранжевый
-            "factorystock": "FFFFFFCC"       # Светло-желтый
+            "industrialsupply": "FFCCFFCC",
+            "machineparts": "FFF9CB9C",
+            "factorystock": "FFFFFFCC"
         }
 
     def generate_report(self, analysis_results, user_info=None):
-        """Генерация Excel отчета"""
         wb = Workbook()
         ws = wb.active
         ws.title = "Анализ запчастей"
@@ -98,7 +97,7 @@ class ExcelReportGenerator:
                     for col in range(1, 6):
                         ws.cell(row=row_idx, column=col).font = Font(
                             bold=True,
-                            color="FF8C00"  # Оранжевый
+                            color="FF8C00"
                         )
 
                 elif price["price"] == result["median_price"]["price"]:
@@ -106,7 +105,7 @@ class ExcelReportGenerator:
                     for col in range(1, 6):
                         ws.cell(row=row_idx, column=col).font = Font(
                             bold=True,
-                            color="0000FF"  # Синий
+                            color="0000FF"
                         )
 
                 row_idx += 1
